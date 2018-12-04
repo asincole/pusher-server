@@ -9,7 +9,7 @@ namespace pusher_chat_server.Models
    
     public class MessageModel
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
         public string Text { get; set; }
 
     }
