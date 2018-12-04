@@ -36,13 +36,18 @@ namespace pusher_chat_server.Controllers
                 options
             );
 
+            var Response = new {
+                text = Message.Text,
+                id = Message.Id,
+                timeStamp = DateTime.Now
+            };
             var result = await pusher.TriggerAsync(
                 "chat",
                 "message",
-                Message
+                Response
             );
 
-            return Ok();
+            return Ok(Response);
         }
     }
 }
