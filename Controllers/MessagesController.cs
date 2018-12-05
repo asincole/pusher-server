@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using pusher_chat_server.Models;
+using pusher_chat_server.Services;
 using PusherServer;
 
 namespace pusher_chat_server.Controllers
@@ -14,10 +15,12 @@ namespace pusher_chat_server.Controllers
     public class MessagesController : ControllerBase
     {
         private IConfiguration _config;
+        private ISentiments _sentiments;
 
-        public MessagesController(IConfiguration config)
+        public MessagesController(IConfiguration config, ISentiments sentiment)
         {
             _config = config;
+            _sentiments = sentiment;
         }
 
         [HttpPost]
@@ -29,19 +32,44 @@ namespace pusher_chat_server.Controllers
                 Encrypted = true
             };
 
-            var pusher = new Pusher(
+            // create new instance of pusher with parameters 
+            var Pusher = new Pusher(
                 Startup.Configuration["pusher:appId"],
                 Startup.Configuration["pusher:key"],
                 Startup.Configuration["pusher:secret"],
                 options
             );
 
-            var Response = new {
+            double sentimentsScore = _sentiments.getSentimentsScore(Message.Text);
+            string Tone = "";
+            if (sentimentsScore >= 0 && sentimentsScore <= 0.49)
+            {
+                Tone = "negative";
+            }
+            else if (sentimentsScore >= 0.51 && sentimentsScore <= 1)
+            {
+                Tone = "positive";
+            }
+            else if (sentimentsScore == 0.5)
+            {
+                Tone = "neutral";
+            }
+
+            // create response object
+            var Response = new
+            {
                 text = Message.Text,
                 id = Message.Id,
-                timeStamp = DateTime.Now
+                timeStamp = DateTime.Now,
+                sentiment = new
+                {
+                    tone = Tone,
+                    score = sentimentsScore
+
+                }
             };
-            var result = await pusher.TriggerAsync(
+
+            var result = await Pusher.TriggerAsync(
                 "chat",
                 "message",
                 Response

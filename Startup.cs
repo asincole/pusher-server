@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using pusher_chat_server.Services;
 
 namespace pusher_chat_server
 {
@@ -26,6 +27,8 @@ namespace pusher_chat_server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddTransient<ISentiments, Sentiments>();
+            services.AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,7 +42,7 @@ namespace pusher_chat_server
             {
                 app.UseHsts();
             }
-
+            app.UseCors();
             app.UseHttpsRedirection();
             app.UseMvc();
         }
